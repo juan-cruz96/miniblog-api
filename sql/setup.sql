@@ -1,0 +1,8 @@
+CREATE TABLE authors (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name TEXT NOT NULL CHECK (TRIM(name) <> '') ,
+    email TEXT NOT NULL UNIQUE ,
+    bio TEXT ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
