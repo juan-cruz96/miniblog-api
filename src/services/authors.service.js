@@ -1,4 +1,3 @@
-import { authors } from "../data/authors.js";
 import pool from "../../config/db.js"
 
 export const findAllAuthors = async () => {
@@ -9,6 +8,22 @@ export const findAllAuthors = async () => {
     return result.rows;
 }
 
-export const findAuthorById = (id) => {
-    return authors.find((author) => author.id === id);
+export const findAuthorById = async (id) => {
+  const result = await pool.query(
+    "SELECT * FROM authors WHERE id = $1;",
+    [id]
+  );
+
+  return result.rows[0];
+};
+
+export const insertAuthor = async (name, email, bio) => {
+  const result = await pool.query(
+    `INSERT INTO authors (name, email, bio)
+     VALUES ($1, $2, $3)
+     RETURNING *;`,
+    [name, email, bio]
+  );
+
+  return result.rows[0];
 };

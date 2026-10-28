@@ -3,6 +3,8 @@ import authorsRouter from "./routes/authors.routes.js";
 
 const app = express();
 
+app.use(express.json());
+
 app.use("/authors", authorsRouter);
 
 
