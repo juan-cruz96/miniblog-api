@@ -1,4 +1,4 @@
-import { findAllAuthors , findAuthorById , insertAuthor } from "../services/authors.service.js";
+import { findAllAuthors , findAuthorById , insertAuthor , updateAuthorById , deleteAuthorById } from "../services/authors.service.js";
 
 
 
@@ -81,6 +81,84 @@ export const createAuthor = async (req, res) => {
 
     return res.status(500).json({
       error: "No se pudo crear el autor",
+    });
+  }
+};
+
+export const updateAuthor = async (req, res) => {
+  const id = req.authorId;
+  const { name, email, bio = null } = req.body ?? {};
+
+  if (typeof name !== "string" || name.trim() === "") {
+    return res.status(400).json({
+      error: "El nombre es obligatorio y debe ser texto",
+    });
+  }
+
+  if (typeof email !== "string" || email.trim() === "") {
+    return res.status(400).json({
+      error: "El email es obligatorio y debe ser texto",
+    });
+  }
+
+  if (bio !== null && typeof bio !== "string") {
+    return res.status(400).json({
+      error: "La biografía debe ser texto",
+    });
+  }
+
+  try {
+    const author = await updateAuthorById(
+      id,
+      name.trim(),
+      email.trim(),
+      bio
+    );
+
+    if (!author) {
+      return res.status(404).json({
+        error: "Autor no encontrado",
+      });
+    }
+
+    return res.status(200).json(author);
+  } catch (error) {
+    if (
+      error.code === "23505" &&
+      error.constraint === "authors_email_key"
+    ) {
+      return res.status(400).json({
+        error: "Ya existe un autor con ese email",
+      });
+    }
+
+    console.error("Error al actualizar autor:", error.message);
+
+    return res.status(500).json({
+      error: "No se pudo actualizar el autor",
+    });
+  }
+};
+
+export const deleteAuthor = async (req, res) => {
+  try {
+    const id = req.authorId;
+    const author = await deleteAuthorById(id);
+
+    if (!author) {
+      return res.status(404).json({
+        error: "Autor no encontrado",
+      });
+    }
+
+    return res.status(200).json({
+    message: "Autor eliminado con éxito",
+   });
+  } catch (error) {
+    console.error("Error al eliminar autor:", error.message);
+
+    return res.status(500).json({
+      error: "No se pudo eliminar el autor",
     });
   }
 };
