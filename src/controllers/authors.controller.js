@@ -1,21 +1,23 @@
-import { findAllAuthors , findAuthorById , insertAuthor , updateAuthorById , deleteAuthorById } from "../services/authors.service.js";
-
-
+import {
+  findAllAuthors,
+  findAuthorById,
+  insertAuthor,
+  updateAuthorById,
+  deleteAuthorById,
+} from "../services/authors.service.js";
 
 export const getAllAuthors = async (req, res) => {
-    try {
-        const authors = await findAllAuthors();
-        res.status(200).json(authors);
-    } catch (error) {
-        console.error( "Error al buscar autores:", error.message);
+  try {
+    const authors = await findAllAuthors();
+    res.status(200).json(authors);
+  } catch (error) {
+    console.error("Error al buscar autores:", error.message);
 
-        res.status(500).json({
-            error: "No se pudieron obtener los autores",
-        })
-    }
+    res.status(500).json({
+      error: "No se pudieron obtener los autores",
+    });
+  }
 };
-
-
 
 export const getAuthorById = async (req, res) => {
   try {
@@ -60,18 +62,11 @@ export const createAuthor = async (req, res) => {
   }
 
   try {
-    const author = await insertAuthor(
-      name.trim(),
-      email.trim(),
-      bio
-    );
+    const author = await insertAuthor(name.trim(), email.trim(), bio);
 
     return res.status(201).json(author);
   } catch (error) {
-    if (
-      error.code === "23505" &&
-      error.constraint === "authors_email_key"
-    ) {
+    if (error.code === "23505" && error.constraint === "authors_email_key") {
       return res.status(400).json({
         error: "Ya existe un autor con ese email",
       });
@@ -108,12 +103,7 @@ export const updateAuthor = async (req, res) => {
   }
 
   try {
-    const author = await updateAuthorById(
-      id,
-      name.trim(),
-      email.trim(),
-      bio
-    );
+    const author = await updateAuthorById(id, name.trim(), email.trim(), bio);
 
     if (!author) {
       return res.status(404).json({
@@ -123,10 +113,7 @@ export const updateAuthor = async (req, res) => {
 
     return res.status(200).json(author);
   } catch (error) {
-    if (
-      error.code === "23505" &&
-      error.constraint === "authors_email_key"
-    ) {
+    if (error.code === "23505" && error.constraint === "authors_email_key") {
       return res.status(400).json({
         error: "Ya existe un autor con ese email",
       });
@@ -152,9 +139,15 @@ export const deleteAuthor = async (req, res) => {
     }
 
     return res.status(200).json({
-    message: "Autor eliminado con éxito",
-   });
+      message: "Autor eliminado con éxito",
+    });
   } catch (error) {
+    if (error.code === "23503" && error.constraint === "posts_author_id_fkey") {
+      return res.status(400).json({
+        error: "No se puede eliminar un autor que tiene posts asociados",
+      });
+    }
+
     console.error("Error al eliminar autor:", error.message);
 
     return res.status(500).json({
