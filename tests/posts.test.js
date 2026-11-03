@@ -133,3 +133,17 @@ test("POST /posts devuelve 400 si el autor no existe", async () => {
     "El autor indicado no existe"
   );
 });
+
+
+test("POST /posts devuelve 400 en JSON si el body está mal formado", async () => {
+  const response = await request(app)
+    .post("/posts")
+    .set("Content-Type", "application/json")
+    .send('{"title":"Prueba",}');
+
+  expect(response.status).toBe(400);
+  expect(response.headers["content-type"]).toMatch(/application\/json/);
+  expect(response.body).toEqual({
+    error: "El cuerpo de la petición debe ser un JSON válido",
+  });
+});

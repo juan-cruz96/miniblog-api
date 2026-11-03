@@ -22,4 +22,14 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use("/authors", authorsRouter);
 app.use("/posts", postsRouter);
 
+app.use((error, req, res, next) => {
+  if (error.type === "entity.parse.failed") {
+    return res.status(400).json({
+      error: "El cuerpo de la petición debe ser un JSON válido",
+    });
+  }
+
+  next(error);
+});
+
 export default app;
