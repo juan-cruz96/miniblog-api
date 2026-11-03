@@ -1,8 +1,11 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect, vi, afterEach } from "vitest";
 import request from "supertest";
 import app from "../src/app.js";
 import pool from "../config/db.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 test("POST /posts devuelve 400 si falta el título", async () => {
   const response = await request(app)
@@ -12,9 +15,8 @@ test("POST /posts devuelve 400 si falta el título", async () => {
       content: "Una escapada de fin de semana al Delta.",
     });
 
-  assert.equal(response.status, 400);
-  assert.equal(
-    response.body.error,
+  expect(response.status).toBe(400);
+  expect(response.body.error).toBe(
     "El título es obligatorio y debe ser texto"
   );
 });
@@ -28,9 +30,8 @@ test("POST /posts devuelve 400 si el contenido está vacío", async () => {
       content: "   ",
     });
 
-  assert.equal(response.status, 400);
-  assert.equal(
-    response.body.error,
+  expect(response.status).toBe(400);
+  expect(response.body.error).toBe(
     "El contenido es obligatorio y debe ser texto"
   );
 });
@@ -43,9 +44,8 @@ test("POST /posts devuelve 400 si falta author_id", async () => {
       content: "Una escapada de fin de semana al Delta.",
     });
 
-  assert.equal(response.status, 400);
-  assert.equal(
-    response.body.error,
+  expect(response.status).toBe(400);
+  expect(response.body.error).toBe(
     "author_id debe ser un entero positivo válido"
   );
 });
@@ -60,22 +60,24 @@ test("POST /posts devuelve 400 si published no es booleano", async () => {
       published: "true",
     });
 
-  assert.equal(response.status, 400);
-  assert.equal(response.body.error, "published debe ser true o false");
+  expect(response.status).toBe(400);
+  expect(response.body.error).toBe(
+    "published debe ser true o false"
+  );
 });
 
-test("GET /posts/999 devuelve 404 si el post no existe", async (t) => {
-  t.mock.method(pool, "query", async () => {
-    return { rows: [] };
+test("GET /posts/999 devuelve 404 si el post no existe", async () => {
+  vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [],
   });
 
   const response = await request(app).get("/posts/999");
 
-  assert.equal(response.status, 404);
-  assert.equal(response.body.error, "Post no encontrado");
+  expect(response.status).toBe(404);
+  expect(response.body.error).toBe("Post no encontrado");
 });
 
-test("POST /posts devuelve 201 y el post creado", async (t) => {
+test("POST /posts devuelve 201 y el post creado", async () => {
   const post = {
     id: 10,
     author_id: 1,
@@ -84,8 +86,8 @@ test("POST /posts devuelve 201 y el post creado", async (t) => {
     published: false,
   };
 
-  const queryMock = t.mock.method(pool, "query", async () => {
-    return { rows: [post] };
+  const queryMock = vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [post],
   });
 
   const response = await request(app)
@@ -96,25 +98,27 @@ test("POST /posts devuelve 201 y el post creado", async (t) => {
       content: "  Una escapada de fin de semana al Delta.  ",
     });
 
-  assert.equal(response.status, 201);
-  assert.deepEqual(response.body, post);
+  expect(response.status).toBe(201);
+  expect(response.body).toEqual(post);
 
-  assert.equal(queryMock.mock.callCount(), 1);
-  assert.deepEqual(queryMock.mock.calls[0].arguments[1], [
-    1,
-    "Un fin de semana en Tigre",
-    "Una escapada de fin de semana al Delta.",
-    false,
-  ]);
+  expect(queryMock).toHaveBeenCalledTimes(1);
+  expect(queryMock).toHaveBeenCalledWith(
+    expect.any(String),
+    [
+      1,
+      "Un fin de semana en Tigre",
+      "Una escapada de fin de semana al Delta.",
+      false,
+    ]
+  );
 });
 
-test("POST /posts devuelve 400 si el autor no existe", async (t) => {
-  t.mock.method(pool, "query", async () => {
-    const error = new Error("El autor no existe");
-    error.code = "23503";
-    error.constraint = "posts_author_id_fkey";
-    throw error;
-  });
+test("POST /posts devuelve 400 si el autor no existe", async () => {
+  const error = new Error("El autor no existe");
+  error.code = "23503";
+  error.constraint = "posts_author_id_fkey";
+
+  vi.spyOn(pool, "query").mockRejectedValue(error);
 
   const response = await request(app)
     .post("/posts")
@@ -124,6 +128,8 @@ test("POST /posts devuelve 400 si el autor no existe", async (t) => {
       content: "Una escapada de fin de semana al Delta.",
     });
 
-  assert.equal(response.status, 400);
-  assert.equal(response.body.error, "El autor indicado no existe");
+  expect(response.status).toBe(400);
+  expect(response.body.error).toBe(
+    "El autor indicado no existe"
+  );
 });
