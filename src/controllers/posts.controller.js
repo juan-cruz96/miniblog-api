@@ -1,13 +1,23 @@
-import { findAllPosts , findPostById , findPostsByAuthorId , insertPost , updatePostById , deletePostById } from "../services/posts.service.js";
+import {
+  findAllPosts,
+  findPostById,
+  findPostsByAuthorId,
+  insertPost,
+  updatePostById,
+  deletePostById,
+} from "../services/posts.service.js";
 
 import { findAuthorById } from "../services/authors.service.js";
+import { isValidId, validatePost } from "../utils/validators.js";
 
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await findAllPosts();
+
     return res.status(200).json(posts);
   } catch (error) {
     console.error("Error al obtener posts:", error.message);
+
     return res.status(500).json({
       error: "No se pudieron obtener los posts",
     });
@@ -17,7 +27,7 @@ export const getAllPosts = async (req, res) => {
 export const getPostById = async (req, res) => {
   const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       error: "El ID debe ser un entero positivo válido",
     });
@@ -45,11 +55,7 @@ export const getPostById = async (req, res) => {
 export const getPostsByAuthorId = async (req, res) => {
   const authorId = Number(req.params.authorId);
 
-  if (
-    !Number.isInteger(authorId) ||
-    authorId <= 0 ||
-    authorId > 2147483647
-  ) {
+  if (!isValidId(authorId)) {
     return res.status(400).json({
       error: "El ID del autor debe ser un entero positivo válido",
     });
@@ -84,31 +90,11 @@ export const createPost = async (req, res) => {
     published = false,
   } = req.body ?? {};
 
-  if (
-    !Number.isInteger(author_id) ||
-    author_id <= 0 ||
-    author_id > 2147483647
-  ) {
-    return res.status(400).json({
-      error: "author_id debe ser un entero positivo válido",
-    });
-  }
+  const validationError = validatePost(req.body);
 
-  if (typeof title !== "string" || title.trim() === "") {
+  if (validationError) {
     return res.status(400).json({
-      error: "El título es obligatorio y debe ser texto",
-    });
-  }
-
-  if (typeof content !== "string" || content.trim() === "") {
-    return res.status(400).json({
-      error: "El contenido es obligatorio y debe ser texto",
-    });
-  }
-
-  if (typeof published !== "boolean") {
-    return res.status(400).json({
-      error: "published debe ser true o false",
+      error: validationError,
     });
   }
 
@@ -142,7 +128,7 @@ export const createPost = async (req, res) => {
 export const updatePost = async (req, res) => {
   const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       error: "El ID debe ser un entero positivo válido",
     });
@@ -155,31 +141,11 @@ export const updatePost = async (req, res) => {
     published = false,
   } = req.body ?? {};
 
-  if (
-    !Number.isInteger(author_id) ||
-    author_id <= 0 ||
-    author_id > 2147483647
-  ) {
-    return res.status(400).json({
-      error: "author_id debe ser un entero positivo válido",
-    });
-  }
+  const validationError = validatePost(req.body);
 
-  if (typeof title !== "string" || title.trim() === "") {
+  if (validationError) {
     return res.status(400).json({
-      error: "El título es obligatorio y debe ser texto",
-    });
-  }
-
-  if (typeof content !== "string" || content.trim() === "") {
-    return res.status(400).json({
-      error: "El contenido es obligatorio y debe ser texto",
-    });
-  }
-
-  if (typeof published !== "boolean") {
-    return res.status(400).json({
-      error: "published debe ser true o false",
+      error: validationError,
     });
   }
 
@@ -220,7 +186,7 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const id = Number(req.params.id);
 
-  if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       error: "El ID debe ser un entero positivo válido",
     });

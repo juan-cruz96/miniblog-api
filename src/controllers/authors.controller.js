@@ -5,6 +5,7 @@ import {
   updateAuthorById,
   deleteAuthorById,
 } from "../services/authors.service.js";
+import { validateAuthor } from "../utils/validators.js";
 
 export const getAllAuthors = async (req, res) => {
   try {
@@ -43,21 +44,11 @@ export const getAuthorById = async (req, res) => {
 export const createAuthor = async (req, res) => {
   const { name, email, bio = null } = req.body ?? {};
 
-  if (typeof name !== "string" || name.trim() === "") {
-    return res.status(400).json({
-      error: "El nombre es obligatorio y debe ser texto",
-    });
-  }
+  const validationError = validateAuthor(req.body);
 
-  if (typeof email !== "string" || email.trim() === "") {
+  if (validationError) {
     return res.status(400).json({
-      error: "El email es obligatorio y debe ser texto",
-    });
-  }
-
-  if (bio !== null && typeof bio !== "string") {
-    return res.status(400).json({
-      error: "La biografía debe ser texto",
+      error: validationError,
     });
   }
 
@@ -84,21 +75,11 @@ export const updateAuthor = async (req, res) => {
   const id = req.authorId;
   const { name, email, bio = null } = req.body ?? {};
 
-  if (typeof name !== "string" || name.trim() === "") {
-    return res.status(400).json({
-      error: "El nombre es obligatorio y debe ser texto",
-    });
-  }
+  const validationError = validateAuthor(req.body);
 
-  if (typeof email !== "string" || email.trim() === "") {
+  if (validationError) {
     return res.status(400).json({
-      error: "El email es obligatorio y debe ser texto",
-    });
-  }
-
-  if (bio !== null && typeof bio !== "string") {
-    return res.status(400).json({
-      error: "La biografía debe ser texto",
+      error: validationError,
     });
   }
 

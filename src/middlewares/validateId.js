@@ -1,15 +1,15 @@
-export const validateId = (req, res , next) => {
+import { isValidId } from "../utils/validators.js";
 
-    const id = Number(req.params.id);
+export const validateId = (req, res, next) => {
+  const id = Number(req.params.id);
 
+  if (!isValidId(id)) {
+    return res.status(400).json({
+      error: "El ID debe ser un numero entero positivo",
+    });
+  }
 
-    if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
-            return res.status(400).json({
-                error: "El ID debe ser un numero entero positivo"
-            });
-        }
+  req.authorId = id;
 
-    req.authorId = id;    
-
-    next();
-} 
+  next();
+};
