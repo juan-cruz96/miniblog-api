@@ -6,8 +6,8 @@ info:
   description: API REST para gestionar autores y publicaciones.
 
 servers:
-  - url: http://localhost:3000
-    description: Servidor local
+  - url: /
+    description: Servidor donde está ejecutándose la API
 
 tags:
   - name: Authors
