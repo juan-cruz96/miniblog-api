@@ -22,14 +22,36 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.use("/authors", authorsRouter);
 app.use("/posts", postsRouter);
 
+// Responde cuando ninguna ruta coincide con la petición.
+app.use((req, res) => {
+  return res.status(404).json({
+    error: "Ruta no encontrada",
+  });
+});
+
+// Maneja los errores que llegan a Express.
 app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
   if (error.type === "entity.parse.failed") {
     return res.status(400).json({
       error: "El cuerpo de la petición debe ser un JSON válido",
     });
   }
 
-  next(error);
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({
+      error: "El cuerpo de la petición es demasiado grande",
+    });
+  }
+
+  console.error("Error inesperado:", error.message);
+
+  return res.status(500).json({
+    error: "Error interno del servidor",
+  });
 });
 
 export default app;

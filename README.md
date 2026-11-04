@@ -6,9 +6,11 @@ Permite crear, consultar, actualizar y eliminar registros. Cada publicación per
 
 ## Proyecto desplegado
 
-- API: https://miniblog-api-v1kz.onrender.com
-- Swagger UI: https://miniblog-api-v1kz.onrender.com/docs
+- Documentación y pruebas: https://miniblog-api-v1kz.onrender.com/docs
 - Ejemplo de consulta: https://miniblog-api-v1kz.onrender.com/authors
+- URL base: `https://miniblog-api-v1kz.onrender.com`
+
+La URL base se utiliza junto con los endpoints. La ruta `/` no tiene una página definida.
 
 ## Tecnologías
 
