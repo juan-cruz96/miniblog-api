@@ -114,3 +114,47 @@ test("POST /authors devuelve 400 si el email ya existe", async () => {
     "Ya existe un autor con ese email"
   );
 });
+
+test("PUT /authors/1 devuelve 200 y el autor actualizado", async () => {
+  const data = {
+    name: "Juan actualizado",
+    email: "juan@example.com",
+    bio: "Nueva biografía",
+  };
+
+  const author = { id: 1, ...data };
+
+  const queryMock = vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [author],
+  });
+
+  const response = await request(app)
+    .put("/authors/1")
+    .send(data);
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual(author);
+  expect(queryMock).toHaveBeenCalledTimes(1);
+  expect(queryMock).toHaveBeenCalledWith(
+    expect.stringMatching(/UPDATE authors/i),
+    [data.name, data.email, data.bio, 1]
+  );
+});
+
+test("DELETE /authors/1 devuelve 200 al eliminar el autor", async () => {
+  const queryMock = vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [{ id: 1 }],
+  });
+
+  const response = await request(app).delete("/authors/1");
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({
+    message: "Autor eliminado con éxito",
+  });
+  expect(queryMock).toHaveBeenCalledTimes(1);
+  expect(queryMock).toHaveBeenCalledWith(
+    expect.stringMatching(/DELETE FROM authors/i),
+    [1]
+  );
+});

@@ -147,3 +147,48 @@ test("POST /posts devuelve 400 en JSON si el body está mal formado", async () =
     error: "El cuerpo de la petición debe ser un JSON válido",
   });
 });
+
+test("PUT /posts/1 devuelve 200 y el post actualizado", async () => {
+  const data = {
+    author_id: 2,
+    title: "Título actualizado",
+    content: "Contenido actualizado",
+    published: true,
+  };
+
+  const post = { id: 1, ...data };
+
+  const queryMock = vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [post],
+  });
+
+  const response = await request(app)
+    .put("/posts/1")
+    .send(data);
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual(post);
+  expect(queryMock).toHaveBeenCalledTimes(1);
+  expect(queryMock).toHaveBeenCalledWith(
+    expect.stringMatching(/UPDATE posts/i),
+    [data.author_id, data.title, data.content, data.published, 1]
+  );
+});
+
+test("DELETE /posts/1 devuelve 200 al eliminar el post", async () => {
+  const queryMock = vi.spyOn(pool, "query").mockResolvedValue({
+    rows: [{ id: 1 }],
+  });
+
+  const response = await request(app).delete("/posts/1");
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({
+    message: "Post eliminado con éxito",
+  });
+  expect(queryMock).toHaveBeenCalledTimes(1);
+  expect(queryMock).toHaveBeenCalledWith(
+    expect.stringMatching(/DELETE FROM posts/i),
+    [1]
+  );
+});
